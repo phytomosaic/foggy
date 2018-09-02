@@ -5,15 +5,15 @@ Species and trait responses to fog gradients.
 
 ## Contributors
 
-Daniel Stanton
-Reinaldo Vargas-Castillo
-Peter Nelson
+Daniel Stanton  
+Reinaldo Vargas-Castillo  
+Peter Nelson  
 Robert Smith
 
 
 ## Motivation
 
-Analysis repository created to faciliate work on species, traits, and phylogenies in relation to Pacific fog gradients.  Development of multivariate tools.
+Analysis repository to faciliate work on species, traits, and phylogenies of plants and lichens in relation to Pacific fog gradients.  Development of multivariate analysis tools.
 
 
 ## Installation
@@ -28,7 +28,7 @@ devtools::install_github('phytomosaic/ecole')
 
 ## Load data
 
-From:  
+Data source:  
 Pavoine, S., Vela, E., Gachet, S., de Bélair, G. and Bonsall, M. B. 2011. Linking patterns in phylogeny, traits, abiotic variables and space: a novel approach to linking environmental filtering and plant community assembly. Journal of Ecology 99:165–175. doi:10.1111/j.1365-2745.2010.01743.x
 
 ```r
