@@ -1,2 +1,2 @@
 # foggy
-Species and trait responses to fog gradients
+Species and trait responses to fog gradients.
