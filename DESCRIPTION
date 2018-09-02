@@ -7,7 +7,7 @@ Description: Analyses of species, traits and phylogenies in relation
 License: GNU GPL (>= 3.0)
 URL: https://github.com/phytomosaic/foggy
 Depends: R (>= 3.5.1)
-Imports: stats, mgcv, vegan
+Imports: ade4, ecole, mgcv, picante, vegan
 Suggests: nlme
 Encoding: UTF-8
 LazyData: true
