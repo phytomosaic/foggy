@@ -37,47 +37,48 @@ require(ade4)
 require(ecole)
 require(picante)
 
-?mafragh
-data(mafragh)
-d <- mafragh
+data(veg)
+d <- veg
+
+# data(invert)
+# d <- invert
 
 # spatial data
 xy  <- d$xy
 
+# species data
+spe <- d$spe
+
 # environmental data
 env <- d$env
-colnames(env) <- ecole::clean_text(colnames(env), lower=TRUE)
-
-# species data
-spe <- d$flo
-colnames(spe) <- ecole::clean_text(d$spenames$scientific, lower=TRUE)
 
 # traits data
-tra <- d$traits
-tra <- data.frame(tra[[1]],tra[[2]],tra[[3]],tra[[4]])
+tra <- d$tra
 
 # phylogenetic data
-phy <- d$tre
-cat(paste0(phy), file = 'phy.tre', sep = '\n')
-phy <- read.tree('phy.tre')
-unlink('phy.tre')
+phy <- d$phy
 ```
 
 ## Visualize
 
 ```r
+### load('./data/veg.rda')
+### load('./data/invert.rda')
+
 # spatial
-plot(xy)
+plot(xy, pch=19, col='#00000050')
+plot(xy, pch=19, col=ecole::colvec(spe$bolboschoenus_maritimus, alpha=1))
+
+#species
+ecole::plot_heatmap(spe, xord=FALSE, logbase=10)
 
 # environment
 ecole::plot_heatmap(sapply(env, function(x)100+scale(x)), xord=FALSE)
 
-#species
-ecole::plot_heatmap(spe, xord=FALSE)
-
 # traits
 ecole::plot_heatmap(sapply(tra, function(x)100+scale(x)), xord=FALSE)
 
-# phylogenetic
-plot(phy, cex=0.8, no.margin=TRUE)
+# phylogeny
+plot(phy, cex=0.6, no.margin=TRUE)
+
 ```
