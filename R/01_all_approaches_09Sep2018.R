@@ -9,19 +9,14 @@ require(vegan)
 require(mgcv)
 
 ### data load
-data(mafragh)
-d <- mafragh
+load('./data/veg.rda')
+# load('./data/invert.rda')
+d   <- veg
 xy  <- d$xy
+spe <- d$spe
 env <- d$env
-colnames(env) <- ecole::clean_text(colnames(env), lower=TRUE)
-spe <- d$flo
-colnames(spe) <- ecole::clean_text(d$spenames$scientific, lower=TRUE)
-tra <- d$traits
-tra <- data.frame(tra[[1]],tra[[2]],tra[[3]],tra[[4]])
-colnames(tra) <- ecole::clean_text(colnames(tra), lower=TRUE)
-tra <- tra[,!names(tra)%in%c('seasonnal','succulence')]
-rownames(tra)[rownames(tra)== 'alisma_plantago_aquatica'] <-
-     'alisma_plantago'
+tra <- d$tra
+phy <- d$phy
 
 ### split species/traits into two (to simulate 'plant vs lichen')
 ###    (break is at deepest phylogenetic node)
@@ -75,10 +70,11 @@ p2$t0  # plant vs lichen CWM traits
      nm   <- dimnames(env)[[2]]
      nenv <- length(nm)
      stopifnot(identical(rownames(scr), rownames(env)))
-     out  <- matrix(NA, nrow=nenv, ncol=ndim+1)
-     dimnames(out)[[1]] <- nm
-     dimnames(out)[[2]] <- c(dimnames(scr)[[2]],'Adj_R2')
-     xn   <- rep(NA, ndim)
+     xn <- rep(NA, ndim)
+     ml <- vector('list', ndim)
+     st <- matrix(NA, nrow=nenv, ncol=ndim+1)
+     dimnames(st)[[1]] <- nm
+     dimnames(st)[[2]] <- c(dimnames(scr)[[2]],'Adj_R2')
      for(i in 1:ndim){
           xn[i] <- paste0('s(scr[,',i,'])')
      }
@@ -86,19 +82,27 @@ p2$t0  # plant vs lichen CWM traits
      for(i in 1:nenv){
           left <- paste0('env[,',i,'] ~ ')
           fmla <- as.formula(paste(left, right))
-          m    <- mgcv::gam(fmla)
-          ss   <- summary(m)
-          out[i,1:ndim] <- as.numeric(sprintf('%.3f', round(ss$s.pv,3)))
-          out[i,ndim+1] <- as.numeric(sprintf('%.3f', round(ss$r.sq,3)))
+          ml[[i]] <- mgcv::gam(fmla)
+          ss      <- summary(ml[[i]])
+          st[i,1:ndim] <- as.numeric(sprintf('%.3f',round(ss$s.pv,3)))
+          st[i,ndim+1] <- as.numeric(sprintf('%.3f',round(ss$r.sq,3)))
      }
+     out <- list(mods=ml, sumtab=st)
+     class(out) <- 'gamfit'
      out
+}
+print.gamfit <- function(x, ...){
+     print(x[['sumtab']])
+}
+summary.gamfit <- function(object, ...){
+     object[['sumtab']]
 }
 # envfit(m1, env, perm=999)    # LINEAR correlations
 gamfit(m1, env)  # lichen species fit to env
 gamfit(m2, env)  #  plant species fit to env
 gamfit(m3, env)  # lichen traits CWM fit to env
 gamfit(m4, env)  #  plant traits CWM fit to env
-### TODO: need coln permutation tests...
+### TODO: need row/col permutation tests...
 
 ### fourthcorner
 (f1 <- fourthcorner(env, spe1, tra1, nrepet=999, modeltype=6))
@@ -109,12 +113,18 @@ gamfit(m4, env)  #  plant traits CWM fit to env
      ca     <-       dudi.coa(spe, scannf=F, nf=ndim)
      pc_env <- dudi.hillsmith(env, scannf=F, nf=ndim, row.w=ca$lw)
      pc_tra <- dudi.hillsmith(tra, scannf=F, nf=ndim, row.w=ca$cw)
-     out    <- rlq(pc_env, ca, pc_tra, scannf=F, nf=ndim)
+     rlqres <- rlq(pc_env, ca, pc_tra, scannf=F, nf=ndim)
+     out <- list(rlqres=rlqres, ca=ca, pc_env=pc_env, pc_tra=pc_tra)
+     class(out) <- 'rlqres'
      out
 }
 `fc_envfit` <- function(x, ...){
-     if(!class(x)[1] == 'rlq') stop('must be class `rlq`')
-     fc   <- fourthcorner.rlq(x, type='R.axes')
+     if(!class(x)[1] == 'rlqres') stop('must be class `rlqres`')
+     rlqres <- x[[1]]
+     ca     <- x[[2]]
+     pc_env <- x[[3]]
+     pc_tra <- x[[4]]
+     fc   <- fourthcorner.rlq(rlqres, type='R.axes')
      nm   <- fc$colnames.R
      nenv <- length(nm)
      tt   <- cbind(r_obsvd  = fc$tabD2$obs,
