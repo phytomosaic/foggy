@@ -70,25 +70,24 @@ p2$t0  # plant vs lichen CWM traits
 
 ### fit GAMs to regress each enviro variable on NMDS scores
 `gamfit` <- function(ord, env, ...){
-     require(mgcv)
      ndim <- ord$ndim
+     scr  <- scores(ord)
      nm   <- dimnames(env)[[2]]
      nenv <- length(nm)
-     scr  <- scores(ord)
      stopifnot(identical(rownames(scr), rownames(env)))
-     out <- matrix(NA, nrow=nenv, ncol=ndim+1)
+     out  <- matrix(NA, nrow=nenv, ncol=ndim+1)
      dimnames(out)[[1]] <- nm
-     dimnames(out)[[2]] <- c(dimnames(scr)[[2]],'Adj-R2')
-     xnam <- rep(NA, ndim)
+     dimnames(out)[[2]] <- c(dimnames(scr)[[2]],'Adj_R2')
+     xn   <- rep(NA, ndim)
      for(i in 1:ndim){
-          xnam[i] <- paste0('s(scr[,',i,'])')
+          xn[i] <- paste0('s(scr[,',i,'])')
      }
-     right <- paste(xnam, collapse= '+')
+     right <- paste(xn, collapse='+')
      for(i in 1:nenv){
           left <- paste0('env[,',i,'] ~ ')
           fmla <- as.formula(paste(left, right))
-          m  <- gam(fmla)
-          ss <- summary(m)
+          m    <- mgcv::gam(fmla)
+          ss   <- summary(m)
           out[i,1:ndim] <- as.numeric(sprintf('%.3f', round(ss$s.pv,3)))
           out[i,ndim+1] <- as.numeric(sprintf('%.3f', round(ss$r.sq,3)))
      }
