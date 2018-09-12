@@ -105,4 +105,26 @@ names_match(spe, env, tra, phy)
 # save to file
 save(xy, spe, env, tra, phy, file = './data/veg.rda')
 
+
+
+
+################################################################
+
+### Pillar and Duarte grassland plants data:
+# Data source:  https://github.com/SrivastavaLab/syncsa/
+
+spe <- read.csv('C:/Users/Rob/Desktop/spe.csv')[,-1]
+env <- read.csv('C:/Users/Rob/Desktop/env.csv')[,-1]
+tra <- read.csv('C:/Users/Rob/Desktop/tra.csv')[,-1]
+Dp  <- read.csv('C:/Users/Rob/Desktop/Dp.csv')[,-1]
+dimnames(Dp)[[1]] <- dimnames(Dp)[[2]]
+cl <- hclust(as.dist(Dp))
+phy <- hclust2phylog(cl)$tre
+cat(paste0(phy), file = 'phy_tmp.tre', sep = '\n')
+phy <- read.tree('phy_tmp.tre')
+unlink('phy_tmp.tre')
+plot(phy)
+phy <- ape::compute.brlen(phy, power=1)
+save(spe, env, tra, phy, Dp, file='./data/pillar.rda')
+
 ####    END    ######################################################

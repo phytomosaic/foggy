@@ -9,14 +9,14 @@ require(vegan)
 require(mgcv)
 
 ### data load
-load('./data/veg.rda')
+load('./data/veg.rda', verbose=T)
 # load('./data/invert.rda')
-d   <- veg
-xy  <- d$xy
-spe <- d$spe
-env <- d$env
-tra <- d$tra
-phy <- d$phy
+# d   <- veg
+# xy  <- d$xy
+# spe <- d$spe
+# env <- d$env
+# tra <- d$tra
+# phy <- d$phy
 
 ### split species/traits into two (to simulate 'plant vs lichen')
 ###    (break is at deepest phylogenetic node)
@@ -57,6 +57,59 @@ plot(m2)
 plot(m3)
 plot(m4)
 
+### plot species WA and range
+`plot_wa` <- function(spe, mod, xexp=1.6, yexp=1, pick=NULL, lcol, ...){
+     tmp <- spe
+     tmp[tmp>0]  <- 1
+     tmp[tmp<=0] <- NA
+     max1 <- sapply(tmp * mod$points[,1], max, na.rm=TRUE)
+     min1 <- sapply(tmp * mod$points[,1], min, na.rm=TRUE)
+     max2 <- sapply(tmp * mod$points[,2], max, na.rm=TRUE)
+     min2 <- sapply(tmp * mod$points[,2], min, na.rm=TRUE)
+     cent <- wascores(mod$points, spe1, expand=F)
+     c1   <- cent[,1]
+     c2   <- cent[,2]
+     if(missing(lcol)) lcol <- '#00000050'
+     if(is.null(pick)){
+          buff <- 0.1
+          plot(c1, c2, xlim=c(min(min1),max(max1))*(1+buff),
+               ylim=c(min(min2),max(max2))*(1+buff),
+               xlab='NMDS1', ylab='NMDS2', ...)
+          for(i in 1:NROW(c1) ){
+               lines(c(min1[i],max1[i]), rep(c2[i],ea=2), col=lcol)
+               lines(rep(c1[i],ea=2), c(min2[i],max2[i]), col=lcol)
+          }
+     } else {
+          ## single axis
+          xlab <- c('NMDS1','NMDS2')[pick]
+          cc   <- list(c1,c2)[[pick]]
+          minn <- list(min1,min2)[[pick]]
+          maxx <- list(max1,max2)[[pick]]
+          o <- order(cc)
+          op <- par(mfrow = c(1, 1),
+                    mar = c(4.1 * yexp, 5 * xexp, 0, 0) + 0.1,
+                    oma = c(0, 0, 0, 0), font = 2)
+          plot(cc[o], 1:length(cc),
+               xlim=c(min(minn),max(maxx))*(1+buff),
+               xlab=xlab, ylab='', axes=F, ...)
+          for (i in 1:length(cc)) {
+               lines(c(minn[o][i],maxx[o][i]), rep(i,ea=2), col=lcol)
+          }
+          axis(1, at=pretty(cc), label=pretty(cc), las=3, cex.axis=0.6)
+          axis(2, at=1:length(cc), label=names(cc)[o], las=1,
+               cex.axis=0.6, tick=F)
+     }
+}
+set_par(1)
+plot_wa(spe1, m1, cex=0.7)
+plot_wa(spe1, m1, pick=1, cex=0.7)
+plot_wa(spe1, m1, pick=2, cex=0.7)
+plot_wa(cwm1, m3, pick=1, cex=0.7)
+plot_wa(cwm1, m3, pick=2, cex=0.7)
+plot_wa(cwm2, m4, pick=1, cex=0.7)
+plot_wa(cwm2, m4, pick=2, cex=0.7)
+
+
 ### procrustes
 p1 <- protest(m1,m2) # plant vs lichen species
 p2 <- protest(m3,m4) # plant vs lichen CWM traits
@@ -75,10 +128,14 @@ p2$t0  # plant vs lichen CWM traits
      st <- matrix(NA, nrow=nenv, ncol=ndim+1)
      dimnames(st)[[1]] <- nm
      dimnames(st)[[2]] <- c(dimnames(scr)[[2]],'Adj_R2')
+     # for(i in 1:ndim){
+     #      xn[i] <- paste0('s(scr[,',i,'])')
+     # }
+     # right <- paste(xn, collapse='+')
      for(i in 1:ndim){
-          xn[i] <- paste0('s(scr[,',i,'])')
+          xn[i] <- paste0('scr[,',i,']')
      }
-     right <- paste(xn, collapse='+')
+     right <- paste0('s(',paste(xn,collapse=','),')')
      for(i in 1:nenv){
           left <- paste0('env[,',i,'] ~ ')
           fmla <- as.formula(paste(left, right))
@@ -99,6 +156,15 @@ summary.gamfit <- function(object, ...){
 }
 # envfit(m1, env, perm=999)    # LINEAR correlations
 gamfit(m1, env)  # lichen species fit to env
+
+g1 <- gamfit(m1, env)  # lichen species fit to env
+
+g1
+summary(g1$mods[[6]])
+
+gam.check(g1$mods[[6]])
+
+
 gamfit(m2, env)  #  plant species fit to env
 gamfit(m3, env)  # lichen traits CWM fit to env
 gamfit(m4, env)  #  plant traits CWM fit to env
@@ -137,5 +203,48 @@ r1 <- rlqfn(spe1, env, tra1)
 r2 <- rlqfn(spe2, env, tra2)
 fc_envfit(r1)
 fc_envfit(r2)
+
+
+
+###   GAM sensitivity analysis   ###################################
+###      add noise to each NMDS axis in turn, calc MAE
+x0   <- gamfit() # baseline iteration
+nrep <- 100    # average the sensitivity over 100 iterations
+`f` <- function(perc=5.0, ...){ # convenience function
+     xx   <- gamfit()
+     # xx <- litetvi(spe, noise(id$mwmt,perc=perc), m_mwmt, na.rm=T)
+     c(mae(x0[,1],xx[,1], stdz=T),
+       mae(x0[,2],xx[,2], stdz=T)
+       # mae(x0[,3],xx[,3], stdz=T)
+     )
+}
+# TIME WARN, 5 min for 100 reps, about 3 s per rep
+Q <- matrix(nrow=nrep,ncol=3) # initiate sensitivity matrix
+for(i in 1:nrep){
+     cat('round',i,'of',nrep,'\n')
+     Q[i,] <- f(perc=5.0)     # add 5% uncertainty, get Q values
+}
+colMeans(Q, na.rm=T)          # summary of mean sensitivity at 5%
+# TIME WARN, about 3 s per rep
+Q <- matrix(nrow=nrep,ncol=3) # initiate sensitivity matrix
+for(i in 1:nrep){
+     cat('round',i,'of',nrep,'\n')
+     Q[i,] <- f(perc=10.0)    # add 10% uncertainty, get Q values
+}
+colMeans(Q, na.rm=T)          # summary of mean sensitivity at 10%
+#
+rm(Q, f, nrep, noise)
+###   end sensitivity analysis   #####################################
+
+
+
+
+
+
+
+
+
+
+
 
 ###   END   ########################################################
