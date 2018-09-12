@@ -123,7 +123,7 @@ colnames(traitLoad) <- paste('Axis', 1:length(eigVals))
 envscr <- data.frame(V %*% eigVecs)
 names(envscr) <- paste('Axis', 1:length(eigVals))
 
-plot(envscr)
-plot(envscr[,1:2])
+# plot(envscr)
+# plot(envscr[,1:2])
 
 ###   END   #########################################################

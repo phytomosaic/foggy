@@ -147,8 +147,9 @@ compete_until <- function(nfinal, community=community){
 
 #Used to identify which species in a community is farthest from the trait optima used for habitat filtering- farthest species are removed first.
 
-find_farthest_from_optima <- function
-(optima=optima, community=community, speciesNamesCol1=TRUE){
+find_farthest_from_optima <- function(optima=optima,
+                                      community=community,
+                                      speciesNamesCol1=TRUE){
      if(speciesNamesCol1!=TRUE){
           print("first col needs to be species names for now")
           return(community)
@@ -163,17 +164,18 @@ find_farthest_from_optima <- function
      labels <-c(start,"optima")
      traits <-rbind(community[,-1], optima)
 
-dist(traits)->m
-as.matrix(m)->m2
-##get last row, which is the distance of each taxa from optimum
-m2[,nrow(m2)]->comp
-which(comp==max(comp))->index
-return(labels[index])
+     dist(traits)->m
+     as.matrix(m)->m2
+     ##get last row, which is the distance of each taxa from optimum
+     m2[,nrow(m2)]->comp
+     which(comp==max(comp))->index
+     return(labels[index])
 }
 
 
 ##identify farthest species from optima and remove it
-one_round_filtering_optima=function(community=community, optima=optima){
+one_round_filtering_optima <- function(community=community,
+                                       optima=optima){
      threatened_list <- find_farthest_from_optima(optima, community)
      n <- length(threatened_list)
      if(n<1){
@@ -184,8 +186,9 @@ one_round_filtering_optima=function(community=community, optima=optima){
 }
 
 
-##run filtering model until only nfinal number of taxa are left in the community
-filter_until=function(nfinal, community=community, optima=optima){
+##run filtering model until only nfinal number of taxa are left in
+## the community
+filter_until <- function(nfinal, community=community, optima=optima){
      nrow(community)->start
      if(nfinal>start){
           print("community is already smaller than target- can't filter")
@@ -220,11 +223,10 @@ filter_until=function(nfinal, community=community, optima=optima){
 
 ## Make sure that all of the functions in the sections above have been run in the terminal before running the code below.
 
-#Create dummy communities with 1 or 2 traits:
-
-sp<-c("A","B","C", "D", "E", "F")
-tr1<-c(1,2,9,10,9, 13)
-tr2<-c(1,1,100,1000, 10000, 1000000)
+# Create dummy communities with 1 or 2 traits:
+sp   <- c("A","B","C", "D", "E", "F")
+tr1  <- c(1,2,9,10,9, 13)
+tr2  <- c(1,1,100,1000, 10000, 1000000)
 
 ## test communities, with one and two traits
 test <- data.frame(sp, tr1)

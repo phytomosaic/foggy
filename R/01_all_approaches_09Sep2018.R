@@ -1,6 +1,6 @@
 ######################################################################
-# Procrustes/nonlinear gradient approach
-#  Rob Smith, smithr2@oregonstate.edu, Oregon State Univ, 09 Sep 2018
+# Multiple approaches: RLQ, fourthcorner, and gradient regression
+#  Rob Smith, smithr2@oregonstate.edu, Oregon State Univ, 12 Sep 2018
 ## CC-BY-SA 4.0 License (Creative Commons Attribution-ShareAlike 4.0)
 
 require(ade4)
@@ -11,12 +11,7 @@ require(mgcv)
 ### data load
 load('./data/veg.rda', verbose=T)
 # load('./data/invert.rda')
-# d   <- veg
-# xy  <- d$xy
-# spe <- d$spe
-# env <- d$env
-# tra <- d$tra
-# phy <- d$phy
+# load('./data/pillar.rda')
 
 ### split species/traits into two (to simulate 'plant vs lichen')
 ###    (break is at deepest phylogenetic node)
@@ -58,7 +53,8 @@ plot(m3)
 plot(m4)
 
 ### plot species WA and range
-`plot_wa` <- function(spe, mod, xexp=1.6, yexp=1, pick=NULL, lcol, ...){
+`plot_wa` <- function(spe, mod, xexp=1.6, yexp=1, pick=NULL, lcol,
+                      buff=0.1, ...){
      tmp <- spe
      tmp[tmp>0]  <- 1
      tmp[tmp<=0] <- NA
@@ -71,7 +67,6 @@ plot(m4)
      c2   <- cent[,2]
      if(missing(lcol)) lcol <- '#00000050'
      if(is.null(pick)){
-          buff <- 0.1
           plot(c1, c2, xlim=c(min(min1),max(max1))*(1+buff),
                ylim=c(min(min2),max(max2))*(1+buff),
                xlab='NMDS1', ylab='NMDS2', ...)
@@ -157,14 +152,8 @@ summary.gamfit <- function(object, ...){
 # envfit(m1, env, perm=999)    # LINEAR correlations
 gamfit(m1, env)  # lichen species fit to env
 
-g1 <- gamfit(m1, env)  # lichen species fit to env
-
-g1
-summary(g1$mods[[6]])
-
-gam.check(g1$mods[[6]])
-
-
+(g1 <- gamfit(m1, env))  # lichen species fit to env
+# summary(g1$mods[[6]]) ; gam.check(g1$mods[[6]])
 gamfit(m2, env)  #  plant species fit to env
 gamfit(m3, env)  # lichen traits CWM fit to env
 gamfit(m4, env)  #  plant traits CWM fit to env
@@ -199,52 +188,39 @@ gamfit(m4, env)  #  plant traits CWM fit to env
      dimnames(out)[[1]] <- nm
      out
 }
-r1 <- rlqfn(spe1, env, tra1)
-r2 <- rlqfn(spe2, env, tra2)
-fc_envfit(r1)
-fc_envfit(r2)
+# r1 <- rlqfn(spe1, env, tra1)
+# r2 <- rlqfn(spe2, env, tra2)
+# fc_envfit(r1)
+# fc_envfit(r2)
 
-
-
-###   GAM sensitivity analysis   ###################################
-###      add noise to each NMDS axis in turn, calc MAE
-x0   <- gamfit() # baseline iteration
-nrep <- 100    # average the sensitivity over 100 iterations
-`f` <- function(perc=5.0, ...){ # convenience function
-     xx   <- gamfit()
-     # xx <- litetvi(spe, noise(id$mwmt,perc=perc), m_mwmt, na.rm=T)
-     c(mae(x0[,1],xx[,1], stdz=T),
-       mae(x0[,2],xx[,2], stdz=T)
-       # mae(x0[,3],xx[,3], stdz=T)
-     )
-}
-# TIME WARN, 5 min for 100 reps, about 3 s per rep
-Q <- matrix(nrow=nrep,ncol=3) # initiate sensitivity matrix
-for(i in 1:nrep){
-     cat('round',i,'of',nrep,'\n')
-     Q[i,] <- f(perc=5.0)     # add 5% uncertainty, get Q values
-}
-colMeans(Q, na.rm=T)          # summary of mean sensitivity at 5%
-# TIME WARN, about 3 s per rep
-Q <- matrix(nrow=nrep,ncol=3) # initiate sensitivity matrix
-for(i in 1:nrep){
-     cat('round',i,'of',nrep,'\n')
-     Q[i,] <- f(perc=10.0)    # add 10% uncertainty, get Q values
-}
-colMeans(Q, na.rm=T)          # summary of mean sensitivity at 10%
-#
-rm(Q, f, nrep, noise)
-###   end sensitivity analysis   #####################################
-
-
-
-
-
-
-
-
-
-
-
+# ###   GAM sensitivity analysis   ###################################
+# ###      add noise to each NMDS axis in turn, calc MAE
+# x0   <- gamfit() # baseline iteration
+# nrep <- 100    # average the sensitivity over 100 iterations
+# `f` <- function(perc=5.0, ...){ # convenience function
+#      xx   <- gamfit()
+#      # xx <- litetvi(spe, noise(id$mwmt,perc=perc), m_mwmt, na.rm=T)
+#      c(mae(x0[,1],xx[,1], stdz=T),
+#        mae(x0[,2],xx[,2], stdz=T)
+#        # mae(x0[,3],xx[,3], stdz=T)
+#      )
+# }
+# # TIME WARN, 5 min for 100 reps, about 3 s per rep
+# Q <- matrix(nrow=nrep,ncol=3) # initiate sensitivity matrix
+# for(i in 1:nrep){
+#      cat('round',i,'of',nrep,'\n')
+#      Q[i,] <- f(perc=5.0)     # add 5% uncertainty, get Q values
+# }
+# colMeans(Q, na.rm=T)          # summary of mean sensitivity at 5%
+# # TIME WARN, about 3 s per rep
+# Q <- matrix(nrow=nrep,ncol=3) # initiate sensitivity matrix
+# for(i in 1:nrep){
+#      cat('round',i,'of',nrep,'\n')
+#      Q[i,] <- f(perc=10.0)    # add 10% uncertainty, get Q values
+# }
+# colMeans(Q, na.rm=T)          # summary of mean sensitivity at 10%
+# #
+# rm(Q, f, nrep, noise)
+# ###   end sensitivity analysis   #####################################
 
 ###   END   ########################################################
