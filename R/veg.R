@@ -27,6 +27,7 @@
 #'
 #' @examples
 #' \dontrun{?mafragh} # in package 'ade4'
+#' data(veg)
 #'
 #' @keywords datasets
 "veg"

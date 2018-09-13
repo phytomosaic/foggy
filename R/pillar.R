@@ -31,7 +31,6 @@
 #'
 #' @examples
 #' data(pillar)
-#' plot_heatmap(spe, logbase=10)
 #'
 #' @keywords datasets
 "pillar"

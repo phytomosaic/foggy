@@ -25,6 +25,7 @@
 #'
 #' @examples
 #' \dontrun{?macroloire} # in package 'ade4'
+#' data(invert)
 #'
 #' @keywords datasets
 "invert"
