@@ -3,7 +3,7 @@
 #' @description Remove potential phylogenetic signal from a set of
 #'     continuous or discrete traits.
 #'
-#' @param phy phylogenetic tree of class 'phylo'
+#' @param phy phylogenetic tree of class \code{'phylo'}
 #'
 #' @param tra matrix or data.frame, rows=species and cols=traits
 #'
@@ -21,7 +21,9 @@
 #'     permitting both continuous and categorical traits.
 #'
 #' @examples
-#' data(pillar)
+#' data(veg) # load('./data/veg.rda', verbose=T)
+#' phy <- veg$phy
+#' tra <- veg$tra
 #' ptra <- phylo_corr(phy, tra)
 #' ecole::set_par(8)
 #' for(i in 1:8){
@@ -53,7 +55,7 @@
      if (!identical(phy$tip.label, rn)) stop('species name mismatch')
 
      # calculate G matrix based on the phylogeny
-     G <- ape::vcv(phy)
+     G <- ape::vcv.phylo(phy)
 
      # phylogenetic 'correction factor' per Butler et al. (2000)
      corfac <- chol(solve(G))
