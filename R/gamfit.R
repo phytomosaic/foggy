@@ -1,7 +1,7 @@
 #' @title GAM for environment-ordination fit
 #'
-#' @description Generalized Additive Model (GAM) to regress each
-#'     environmental variable on NMDS ordination scores.
+#' @description Generalized Additive Model (GAM) to regress one or
+#'     many environmental variables on NMDS ordination scores.
 #'
 #' @param ord ordination model from \code{vegan}
 #'
@@ -42,7 +42,10 @@
 #' plot(g, pick=10)
 #'
 #' @seealso
-#' \code{\link[mgcv]{gam}}
+#' \code{\link[mgcv]{gam}} for the internal fitting function,
+#'     \code{\link[vegan]{ordisurf}} for a similar procedure that only
+#'     admits variables one-at-a-time, and \code{\link[vegan]{envfit}}
+#'     for a linear alternative.
 #'
 #' @export
 #' @rdname gamfit
@@ -105,6 +108,10 @@
      points(xx, pch=16, col=pcol, cex=pcex, ...)
 }
 
+### TODO:
+# row/col permutation of p-values
+#
+### TODO:
 # ###   GAM sensitivity analysis   ###################################
 # ###      add noise to each NMDS axis in turn, calc MAE
 #

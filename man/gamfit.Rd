@@ -39,8 +39,8 @@ plot as a nonlinear regression surface in the ordination space}
 Object of class \code{gamfit}.
 }
 \description{
-Generalized Additive Model (GAM) to regress each
-    environmental variable on NMDS ordination scores.
+Generalized Additive Model (GAM) to regress one or
+    many environmental variables on NMDS ordination scores.
 }
 \details{
 Nonlinear regression of each environmental variable in turn on the
@@ -61,5 +61,8 @@ plot(g, pick=10)
 
 }
 \seealso{
-\code{\link[mgcv]{gam}}
+\code{\link[mgcv]{gam}} for the internal fitting function,
+    \code{\link[vegan]{ordisurf}} for a similar procedure that only
+    admits variables one-at-a-time, and \code{\link[vegan]{envfit}}
+    for a linear alternative.
 }
