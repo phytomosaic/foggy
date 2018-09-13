@@ -4,10 +4,10 @@ Version: 0.0.03-2018
 Authors@R: person("Robert", "Smith", email = "smithr2@oregonstate.edu", role = c("aut", "cre"))
 Description: Analyses of species, traits and phylogenies in relation 
     to Pacific fog gradients.
-License: GPL (>= 3)
+License: GPL (>= 3) + file LICENSE
 URL: https://github.com/phytomosaic/foggy
-Depends: R (>= 3.5.1)
-Imports: ade4, ecole, mgcv, picante, vegan
+Depends: R (>= 3.5.0)
+Imports: ade4, ecole, mgcv, picante, ape, vegan
 Suggests: nlme
 Encoding: UTF-8
 LazyData: true
