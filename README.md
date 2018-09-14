@@ -63,6 +63,10 @@ plot(phy, cex=0.6, no.margin=TRUE)
 
 ### Introducing gradient regression
 
+![alt text1](https://github.com/phytomosaic/foggy/blob/master/.makefiles/workflow.png)
+
+![alt text2](https://raw.githubusercontent.com/phytomosaic/foggy/.makefiles/workflow.png)
+
 ![Gradient regression](phytomosaic.github.com/foggy/.makefiles/workflow.png)
 
 ```r
