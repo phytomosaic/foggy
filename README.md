@@ -1,6 +1,6 @@
 # foggy
 
-Species and trait responses to fog gradients.
+Gradient regression to integrate phylogeny, species, and trait responses to environment.
 
 
 ## Contributors
@@ -13,7 +13,8 @@ Robert Smith
 
 ## Motivation
 
-Analysis repository to faciliate work on species, traits, and phylogenies of plants and lichens in relation to Pacific fog gradients.  Development of multivariate analysis tools.
+Analysis repository to faciliate work on species, traits, and phylogenies of plants and lichens in relation to Pacific fog gradients.  Development of multivariate analysis tools. 
+Gradient regression to integrate phylogeny, species, and trait responses to environment.
 
 
 ## Installation
@@ -28,57 +29,88 @@ devtools::install_github('phytomosaic/ecole')
 
 ## Load data
 
-Data source:  
-Pavoine, S., Vela, E., Gachet, S., de Bélair, G. and Bonsall, M. B. 2011. Linking patterns in phylogeny, traits, abiotic variables and space: a novel approach to linking environmental filtering and plant community assembly. Journal of Ecology 99:165–175. doi:10.1111/j.1365-2745.2010.01743.x
-
 ```r
 require(foggy)
-require(ade4)
-require(ecole)
-require(picante)
-
+?veg
 data(veg)
-d <- veg
-
-# data(invert)
-# d <- invert
-
-# spatial data
-xy  <- d$xy
-
-# species data
-spe <- d$spe
-
-# environmental data
-env <- d$env
-
-# traits data
-tra <- d$tra
-
-# phylogenetic data
-phy <- d$phy
+d   <- veg
+xy  <- d$xy    # spatial
+spe <- d$spe   # species
+env <- d$env   # environment
+tra <- d$tra   # traits
+phy <- d$phy   # phylogeny
 ```
 
 ## Visualize
 
 ```r
-### load('./data/veg.rda')
-### load('./data/invert.rda')
-
 # spatial
 plot(xy, pch=19, col='#00000050')
-plot(xy, pch=19, col=ecole::colvec(spe$bolboschoenus_maritimus, alpha=1))
 
 #species
-ecole::plot_heatmap(spe, xord=FALSE, logbase=10)
+plot_heatmap(spe, xord=FALSE, logbase=10)
 
 # environment
-ecole::plot_heatmap(sapply(env, function(x)100+scale(x)), xord=FALSE)
+plot_heatmap(sapply(env, function(x)100+scale(x)), xord=FALSE)
 
 # traits
-ecole::plot_heatmap(sapply(tra, function(x)100+scale(x)), xord=FALSE)
+plot_heatmap(sapply(tra, function(x)100+scale(x)), xord=FALSE)
 
 # phylogeny
 plot(phy, cex=0.6, no.margin=TRUE)
 
 ```
+
+### Introducing gradient regression
+
+![Gradient regression](phytomosaic.github.com/foggy/.makefiles/workflow.png)
+
+```r
+### basic transformations
+spe <- data.frame(genlogtrans(spe))
+env <- data.frame(decostand(scale(env, center=F), 'range'))
+tra <- data.frame(decostand(tra, 'range'))
+
+### phylogenetic correction of traits
+ptra <- phylo_corr(phy, tra)
+
+### see effects of phylogenetic correction
+set_par(NCOL(tra))
+for(i in 1:NCOL(tra)){
+     plot(tra[,i], ptra[,i], pch=16, cex=0.7, col='#00000050',
+          xlab=dimnames(tra)[[2]][i], ylab=dimnames(ptra)[[2]][i])
+}
+
+### community-weighted means of phylo-corrected traits (PCWM),
+###     interpreted here as phylo-corrected trait syndromes
+pcwm <- data.frame(makecwm(spe, ptra))
+
+### NMDS ordination of phylo-corrected trait syndromes
+m <- ordfn(pcwm,'altGower', 2)
+
+### GAM gradient regressions give nonlinear goodness-of-fit relating
+###       phylo-corrected trait syndromes to environment
+vegan::envfit(m, env, perm=999)    # *linear* fit may be unrealistic 
+g <- gamfit(m, env)                # *nonlinear* fit
+
+### plot gradient regressions for each enviro variable;
+###     trait syndrome responses to enviro are commonly nonlinear!
+set_par(NCOL(env))
+plot(m) # NMDS ordination
+for (i in 1:NCOL(env)){
+     plot(g, i, lcol='#FF000080', lwd=1)
+}
+
+### can also overlay phylo-corrected traits in the same space
+gt <- gamfit(m, pcwm)
+set_par(NCOL(pcwm))
+for (i in 1:NCOL(pcwm)){
+     plot(gt, i, lcol='#FF000080', lwd=1)
+}
+
+#### end ####
+```
+
+
+
+
