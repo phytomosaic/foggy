@@ -63,11 +63,7 @@ plot(phy, cex=0.6, no.margin=TRUE)
 
 ### Introducing gradient regression
 
-![alt text1](https://github.com/phytomosaic/foggy/blob/master/.makefiles/workflow.png)
-
-![alt text2](https://raw.githubusercontent.com/phytomosaic/foggy/.makefiles/workflow.png)
-
-![Gradient regression](phytomosaic.github.com/foggy/.makefiles/workflow.png)
+![Gradient regression](https://github.com/phytomosaic/foggy/blob/master/.makefiles/workflow.png)
 
 ```r
 ### basic transformations
@@ -92,8 +88,7 @@ pcwm <- data.frame(makecwm(spe, ptra))
 ### NMDS ordination of phylo-corrected trait syndromes
 m <- ordfn(pcwm,'altGower', 2)
 
-### GAM gradient regressions give nonlinear goodness-of-fit relating
-###       phylo-corrected trait syndromes to environment
+### GAM gradient regressions give trait-environment fit
 vegan::envfit(m, env, perm=999)    # *linear* fit may be unrealistic 
 g <- gamfit(m, env)                # *nonlinear* fit
 
