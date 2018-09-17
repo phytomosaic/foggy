@@ -71,7 +71,13 @@ spe <- data.frame(genlogtrans(spe))
 env <- data.frame(decostand(scale(env, center=F), 'range'))
 tra <- data.frame(decostand(tra, 'range'))
 
-### phylogenetic correction of traits
+### detect phylogenetic signal for traits
+K <- sapply(tra, FUN=function(j){
+     names(j) <- rownames(tra)
+     round(picante::phylosignal(j, multi2di(phy)),6)})
+as.matrix(K) # Blomberg's K statistic for continuous traits
+
+### phylogenetic correction of traits (given phylo signal)
 ptra <- phylo_corr(phy, tra)
 
 ### see effects of phylogenetic correction
