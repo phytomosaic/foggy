@@ -5,6 +5,9 @@
 \alias{print.gamfit}
 \alias{summary.gamfit}
 \alias{plot.gamfit}
+\alias{gamfit_sens}
+\alias{plot.gamfit_sens}
+\alias{summary.gamfit_sens}
 \title{GAM for environment-ordination fit}
 \usage{
 gamfit(ord, env, ...)
@@ -15,6 +18,12 @@ gamfit(ord, env, ...)
 
 \method{plot}{gamfit}(x, pick = 1, pcol, lcol, pcex, lwd, title = TRUE,
   ...)
+
+gamfit_sens(x, env, nrep = 99, perc = 5, ...)
+
+\method{plot}{gamfit_sens}(r, stat = "r2", pltype = "joy", ...)
+
+\method{summary}{gamfit_sens}(r, x, ...)
 }
 \arguments{
 \item{ord}{ordination model from \code{vegan}}
@@ -34,9 +43,25 @@ plot as a nonlinear regression surface in the ordination space}
 \item{pcex, lwd}{point size and line width}
 
 \item{title}{logical, add variable name as title? (default=TRUE)}
+
+\item{nrep}{number of repetitions for sensitivity analysis
+(default=99)}
+
+\item{perc}{numeric, percent noise to add to env variables for
+sensitivity analysis}
+
+\item{r}{object of class \code{gamfit_sens}, from sensitivity
+analysis}
+
+\item{stat}{one of \code{c('r2','pval')} to plot from sensitivity
+analysis}
+
+\item{pltype}{one of \code{c('heat','joy')} for a heatmap or
+joyplot, respectively}
 }
 \value{
-Object of class \code{gamfit}.
+Object of class \code{gamfit} or \code{gamfit_sens} for those
+    functions respectively, or plots to device.
 }
 \description{
 Generalized Additive Model (GAM) to regress one or
@@ -48,10 +73,11 @@ Nonlinear regression of each environmental variable in turn on the
     for the joint smooth term, and adjusted-R2 expressing the
     strength of (nonlinear) relationship between each environmental
     variable and the ordination. Print, summary and plot methods
-    exist. Sensitivity analysis is yet to do.
+    exist. Sensitivity analysis currently exists but needs
+    refinement.
 }
 \examples{
-data(veg) # load('./data/veg.rda', verbose=T)
+data(veg)
 spe <- veg$spe
 env <- veg$env
 m <- vegan::metaMDS(vegan::vegdist(spe), trace=0)
@@ -59,10 +85,21 @@ g <- gamfit(m, env)
 g
 plot(g, pick=10)
 
+# sensitivity analysis
+r <- gamfit_sens(g, env)
+plot(r, pltype='heat')
+plot(r, pltype='joy')
+(MAE <- summary(r, g))
+plot(MAE, xaxt='n', las=1)
+axis(1, 1:NCOL(env), names(env), cex.axis=0.7)
+sapply(data.frame(r[,,1]<0.05),sum) / 99 # proportion 'significant'
+
 }
 \seealso{
 \code{\link[mgcv]{gam}} for the internal fitting function,
     \code{\link[vegan]{ordisurf}} for a similar procedure that only
     admits variables one-at-a-time, and \code{\link[vegan]{envfit}}
-    for a linear alternative.
+    for a linear alternative.  Plotting methods for sensitivity
+    analysis follow \code{\link[ecole]{plot_joy}} and
+    \code{\link[ecole]{plot_heatmap}}.
 }
