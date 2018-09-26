@@ -37,6 +37,24 @@ for(i in 1:NCOL(cwm)){
           xlab=dimnames(cwm)[[2]][i], ylab=dimnames(pcwm)[[2]][i])
 }
 
+### first select dimensionality of NMDS ordinations
+screeNMDS <- function(spe, distance, kk=5, ...) {
+     stress <- rep(NA, kk)
+     for (i in 1:kk) {
+          cat(i, 'of', kk, 'dimensions\n')
+          m <- ordfn(spe=spe, distance=distance, k=i, ...)
+          stress[i] <- m$stress
+     }
+     plot(1:kk, stress, main='', xlab='Dimension', ylab='Stress',
+          ylim=c(0, max(stress)*1.05), pch=16, las=1, bty='l')
+     lines(1:kk, stress)
+     abline(0.20, 0, col='red', lty = 2)
+     data.matrix(stress)
+}
+screeNMDS(spe, distance='bray', kk=5)         # 2 dimensions
+screeNMDS(cwm, distance='altGower', kk=5)     # 2 dimensions
+screeNMDS(pcwm, distance='altGower', kk=5)    # 2 dimensions
+
 ### NMDS ordinations
 m1 <- ordfn(spe, 'bray', 2)
 m2 <- ordfn(cwm, 'altGower', 2)
@@ -56,7 +74,7 @@ plot(m2)
 plot(m3)
 plot(g1)  # species compositions have nonlinear relation to clay
 plot(g2)  # but trait syndromes have nearly linear!
-plot(g3)  # but as do phylo-corr trait syndromes!
+plot(g3)  # as do phylo-corr trait syndromes!
 
 ### plot GAM gradient regressions
 set_par(12)
@@ -66,13 +84,11 @@ for (i in 1:4){
      plot(g2, i)
      plot(g3, i)
 }
-set_par(12)
 for (i in 5:8){
      plot(g1, i)
      plot(g2, i)
      plot(g3, i)
 }
-set_par(12)
 for (i in 9:11){
      plot(g1, i)
      plot(g2, i)
