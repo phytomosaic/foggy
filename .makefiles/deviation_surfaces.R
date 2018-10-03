@@ -5,6 +5,8 @@
 
 ###   begin deviation surfaces   #####################################
 
+require(foggy)
+
 ### 1d example
 m1 <- function(x, xo, ym)   - ym * (x-xo)/x
 m2 <- function(x, xo, ym, k)- ym * (1-exp(-log(2)*(x-xo)/k))
@@ -53,5 +55,16 @@ persp_heat(m1$grid$z,theta=5,phi=33,r=9,axes=F,expand=.3)
 persp_heat(m2$grid$z,theta=5,phi=33,r=9,axes=F,expand=.3)
 persp_heat(m3$grid$z,pal='redblue',theta=5,phi=33,r=9,axes=F,expand=.3)
 # dev.off()
+
+
+
+persp_heat(m1$grid$z,theta=5,phi=33,r=9,axes=F,expand=.3)
+persp_heat(m2$grid$z,theta=5,phi=33,r=9,axes=F,expand=.3)
+persp_heat(m3$grid$z,pal='redblue',theta=5,phi=33,r=9,axes=F,expand=.3)
+# dev.off()
+
+
+
+
 
 ###   end deviation surfaces   ######################################

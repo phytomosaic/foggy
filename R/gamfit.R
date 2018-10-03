@@ -77,6 +77,7 @@
 #'
 #' @export
 #' @rdname gamfit
+#'
 `gamfit` <- function(ord, env, ...){
      ### TODO: row/col permutation of p-values
      if (!any(match(class(ord),'metaMDS')))
