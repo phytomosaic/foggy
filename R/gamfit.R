@@ -132,9 +132,8 @@
      if(missing(pcol)) pcol <- '#00000080'
      if(missing(pcex)) pcex <-  0.5
      if(missing(lwd))  lwd  <-  2
-     # TODO: currently works but throws warning for 'type':
      if(title) main <- dimnames(m)[[2]][1] else main <- ''
-     plot(x, se=F, col=lcol, lwd=lwd, main=main, type='n', ...)
+     plot(x, se=F, col=lcol, lwd=lwd, main=main, ...)
      points(xx, pch=16, col=pcol, cex=pcex, ...)
 }
 ###   sensitivity functions   #####
