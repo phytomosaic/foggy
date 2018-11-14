@@ -48,13 +48,13 @@ phy <- d$phy   # phylogeny
 plot(xy, pch=19, col='#00000050')
 
 #species
-plot_heatmap(spe, xord=FALSE, logbase=10)
+plot_heatmap(spe, logbase=10)
 
 # environment
-plot_heatmap(sapply(env, function(x)100+scale(x)), xord=FALSE)
+plot_heatmap(sapply(env, function(x)100+scale(x)))
 
 # traits
-plot_heatmap(sapply(tra, function(x)100+scale(x)), xord=FALSE)
+plot_heatmap(sapply(tra, function(x)100+scale(x)))
 
 # phylogeny
 plot(phy, cex=0.6, no.margin=TRUE)
