@@ -123,6 +123,20 @@
 }
 #' @export
 #' @rdname gamfit
+`fitted.gamfit` <- function(object, ...){
+     ml <- object$mods
+     nc <- length(ml)
+     nr <- length(ml[[1]]$fitted.values)
+     out<- data.frame(matrix(NA, nrow=nr, ncol=nc))
+     cn <- dimnames(object$sumtab)[[1]]
+     for(j in 1:nc){
+          out[[j]] <- ml[[j]]$fitted.values
+     }
+     dimnames(out)[[2]] <- cn
+     out
+}
+#' @export
+#' @rdname gamfit
 `plot.gamfit` <- function(x, pick=1, pcol, lcol, pcex, lwd,
                           title=TRUE, ...){
      x <- x[['mods']][[pick]] # currently best w 2 smooth predictors
@@ -136,6 +150,7 @@
      plot(x, se=F, col=lcol, lwd=lwd, main=main, ...)
      points(xx, pch=16, col=pcol, cex=pcex, ...)
 }
+
 ###   sensitivity functions   #####
 #' @export
 #' @rdname gamfit
