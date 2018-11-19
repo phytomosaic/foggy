@@ -91,6 +91,22 @@ for(i in 1:NCOL(tra)){
 ###     interpreted here as phylo-corrected trait syndromes
 pcwm <- data.frame(makecwm(spe, ptra))
 
+### first select dimensionality of NMDS ordinations
+`screeNMDS` <- function(spe, distance, kk=5, ...) {
+     stress <- rep(NA, kk)
+     for (i in 1:kk) {
+          cat(i, 'of', kk, 'dimensions\n')
+          m <- ordfn(spe=spe, distance=distance, k=i, ...)
+          stress[i] <- m$stress
+     }
+     plot(1:kk, stress, main='', xlab='Dimension', ylab='Stress',
+          ylim=c(0, max(stress)*1.05), pch=16, las=1, bty='l')
+     lines(1:kk, stress)
+     abline(0.20, 0, col='red', lty = 2)
+     data.matrix(stress)
+}
+screeNMDS(pcwm, distance='altGower', kk=5)  # 2 dimensions seems ok
+
 ### NMDS ordination of phylo-corrected trait syndromes
 m <- ordfn(pcwm,'altGower', 2)
 
