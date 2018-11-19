@@ -7,6 +7,7 @@
 # devtools::install_github('phytomosaic/foggy', auth_token=GITHUB_PAT)
 
 require(foggy)
+rm(list=ls())
 
 ### load data
 data(simdata)
@@ -82,44 +83,28 @@ pcwm2 <- makecwm(spe2, ptra2)
 ### NMDS ordination of phylo-corrected trait syndromes
 m1 <- ordfn(pcwm1, 'altGower', 2)
 m2 <- ordfn(pcwm2, 'altGower', 2)
-set_par(2)
-plot(m1, type='t')
-plot(m2, type='t')
 
 ### GAM gradient regressions give trait-environment fit
-g1 <- gamfit(m1, env)                # *nonlinear* fit
-g2 <- gamfit(m2, env)                # *nonlinear* fit
-plot(g2)
+(g1 <- gamfit(m1, env))               # *nonlinear* fit
+(g2 <- gamfit(m2, env))               # *nonlinear* fit
 
-g1$mods
-
+### plot gradient regressions for each enviro variable
+set_par((NCOL(env)+1)*2)
+plot(m1, type='t')
+for (i in 1:NCOL(env)){
+     plot(g1, i, lcol='#FF000080', lwd=1)
+}
+plot(m2, type='t')
+for (i in 1:NCOL(env)){
+     plot(g2, i, lcol='#FF000080', lwd=1)
+}
 
 ### deviation surfaces
-
-
-fitted(g1)
-
-
-fit1 <- predict(object, type = "response")
-
-str(g1)
-
-
-y1 <- calibrate(m1)  # get fitted values from GAM
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+fit1 <- fitted(g1)
+fit2 <- fitted(g2)
+dev  <- ecole::standardize(y1) - ecole::standardize(y2) # calc devn
+(gdev <- gamfit(m1, dev))               # *nonlinear* fit
+plot(gdev)
 
 ### procrustes
 p <- protest(m1,m2) # plant vs lichen trait syndromes
