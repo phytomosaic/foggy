@@ -79,13 +79,18 @@
 #' @rdname gamfit
 #'
 `gamfit` <- function(ord, env, ...){
-     ### TODO: row/col permutation of p-values
-     if (!any(match(class(ord),'metaMDS')))
-          stop('`ord` must be of class `metaMDS`')
-     scr   <- vegan::scores(ord)
+     # if (!inherits(ord, c('metaMDS','procrustes'))){
+     #      stop('`ord` must be of class `metaMDS` or `procrustes`')
+     # }
+     if (inherits(ord, 'metaMDS')){
+          scr  <- vegan::scores(ord)
+          ndim <- ord$ndim
+     } else {
+          scr  <- as.data.frame(ord)
+          ndim <- (dim(ord)[[2]])
+     }
      scrnm <- dimnames(scr)[[2]]
      envnm <- dimnames(env)[[2]]
-     ndim  <- ord$ndim
      nenv  <- length(envnm)
      stopifnot(identical(dimnames(scr)[[1]], dimnames(env)[[1]]))
      xx    <- data.frame(env, scr)
@@ -142,10 +147,10 @@
      x <- x[['mods']][[pick]] # currently best w 2 smooth predictors
      m <- x$model
      xx <- m[,2:NCOL(m)]
-     if(missing(lcol)) lcol <- '#00000095'
+     if(missing(lcol)) lcol <- '#FF000080'
      if(missing(pcol)) pcol <- '#00000080'
      if(missing(pcex)) pcex <-  0.5
-     if(missing(lwd))  lwd  <-  2
+     if(missing(lwd))  lwd  <-  1
      if(title) main <- dimnames(m)[[2]][1] else main <- ''
      plot(x, se=F, col=lcol, lwd=lwd, main=main, ...)
      points(xx, pch=16, col=pcol, cex=pcex, ...)
