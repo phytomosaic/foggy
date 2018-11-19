@@ -7,7 +7,6 @@
 # devtools::install_github('phytomosaic/foggy', auth_token=GITHUB_PAT)
 
 require(foggy)
-rm(list=ls())
 
 ### load data
 data(simdata)
@@ -66,12 +65,12 @@ ptra2 <- phylo_corr(phy2, tra2)
 ### see effects of phylogenetic correction
 set_par(NCOL(tra1))
 for(i in 1:NCOL(tra1)){
-     plot(tra1[,i], ptra1[,i], pch=16, cex=0.7, col='#00000050',
+     plot(tra1[,i], ptra1[,i], pch=16, cex=0.8, col='#00000050',
           xlab=dimnames(tra1)[[2]][i], ylab=dimnames(ptra1)[[2]][i])
 }
 set_par(NCOL(tra2))
 for(i in 1:NCOL(tra2)){
-     plot(tra2[,i], ptra2[,i], pch=16, cex=0.7, col='#00000050',
+     plot(tra2[,i], ptra2[,i], pch=16, cex=0.8, col='#00000050',
           xlab=dimnames(tra2)[[2]][i], ylab=dimnames(ptra2)[[2]][i])
 }
 
@@ -81,37 +80,85 @@ pcwm1 <- makecwm(spe1, ptra1)
 pcwm2 <- makecwm(spe2, ptra2)
 
 ### NMDS ordination of phylo-corrected trait syndromes
-m1 <- ordfn(pcwm1, 'altGower', 2)
-m2 <- ordfn(pcwm2, 'altGower', 2)
-
-### GAM gradient regressions give trait-environment fit
-(g1 <- gamfit(m1, env))               # *nonlinear* fit
-(g2 <- gamfit(m2, env))               # *nonlinear* fit
-
-### plot gradient regressions for each enviro variable
-set_par((NCOL(env)+1)*2)
-plot(m1, type='t')
-for (i in 1:NCOL(env)){
-     plot(g1, i, lcol='#FF000080', lwd=1)
-}
-plot(m2, type='t')
-for (i in 1:NCOL(env)){
-     plot(g2, i, lcol='#FF000080', lwd=1)
-}
-
-### deviation surfaces
-fit1 <- fitted(g1)
-fit2 <- fitted(g2)
-dev  <- ecole::standardize(y1) - ecole::standardize(y2) # calc devn
-(gdev <- gamfit(m1, dev))               # *nonlinear* fit
-plot(gdev)
+(m1 <- ordfn(pcwm1, 'altGower', 2))
+(m2 <- ordfn(pcwm2, 'altGower', 2))
 
 ### procrustes
-p <- protest(m1,m2) # plant vs lichen trait syndromes
-p$t0
-env$resid <- residuals(p)
-plot(env$env1, env$resid)
-plot(env$env2, env$resid)
+p <- protest(m1,m2,perm=999,symm=T) # plant v lichen trait syndromes
+p$t0 ; p$signif
+m2$points <- p$Yrot # replace old scores with procrustes aligned ones
+
+### plot configurations after procrustes alignment
+set_par(2)
+plot(m1, type='t')
+plot(m2, type='t')
+
+### GAM gradient regressions give *nonlinear* trait-environment fit
+(g1 <- gamfit(m1, env))
+(g2 <- gamfit(m2, env))
+
+### plot gradient regressions for each enviro variable
+set_par(NCOL(env)*2)
+for (i in 1:NCOL(env)){ plot(g1, i, lcol='#FF000080', lwd=1) }
+for (i in 1:NCOL(env)){ plot(g2, i, lcol='#FF000080', lwd=1) }
+
+
+# H1: Trait convergence of non-analogous communities will be greater
+# at the extremes of the environmental stress gradients (because
+# extremes more strongly select for similar trait syndromes???).
+# Convergence is measured as 1) Procrustes residuals or 2) overlap of
+# env surfaces in trait syndrome space.
+
+### H1: are Procrustes residuals higher at environmental extremes?
+resid <- residuals(p)
+set_par(2)
+plot(env$env1, resid)
+plot(env$env2, resid)
+
+### H1: are env deviation surfaces greatest at environmental extremes?
+y1 <- fitted(g1)
+y2 <- fitted(g2)
+dev <- ecole::standardize(y1) - ecole::standardize(y2) # calc devn
+(gdev <- gamfit(m1, dev))   # deviation surface
+set_par(6)
+for(j in 1:NCOL(env)){
+     plot(g1,   j, lcol='#FF000080', lwd=1)
+     plot(g2,   j, lcol='#FF000080', lwd=1)
+     plot(gdev, j, lcol='#FF000080', lwd=1)
+}
+
+
+# H2: Suites of traits (e.g. water retention traits, photoprotection
+# traits, etc) will show similar responses to environmental gradients
+# in both vascular plants and lichens.
+
+# H2: overlay gradient surfaces per trait
+
+### can also overlay phylo-corrected traits in the same space
+gt1 <- gamfit(m1, pcwm1)
+gt2 <- gamfit(m2, pcwm2)
+gtd <- gamfit(m1, pcwm1)
+
+
+set_par(NCOL(pcwm1))
+for (i in 1:NCOL(pcwm1)){
+     plot(gt1, i, lcol='#FF000080', lwd=1)
+}
+
+
+
+# H3: Resource delivery form will affect taxonomic diversity of clades
+# differentially.
+# Lichen species diversity increase with fog (altitude), no change rain (latitude)
+# Plant species diversity no change with fog (altitude), increase with rain (latitude)
+
+
+# H4: Resource delivery form will affect phylogenetic diversity and
+# phylogenetic richness of clades differentially.
+# Lichen P increase with fog (altitude), no change rain (latitude)
+# Plant P no change with fog (altitude), increase with rain (latitude)
+
+# Further Hypotheses: verify performance against existing methods:
 
 # ### fourthcorner
 # (f1 <- fourthcorner(env, spe1, tra1, nrepet=999, modeltype=6))

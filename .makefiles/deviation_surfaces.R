@@ -38,7 +38,6 @@ text(3,-.9, paste('Rho:',
 data(varespec); data(varechem) ; set.seed(47)
 nms <- vegan::monoMDS(vegan::vegdist(varespec))
 nms$points[,1] <- nms$points[,1]*(-1) # simple reflection
-
 # tiff('~/fig/deviationsurfaces.tif',
 #      wid=12,hei=8,units='in',compr='lzw+p',res=500)
 par(mfrow=c(2,3), las=1, bty='l')
@@ -55,16 +54,5 @@ persp_heat(m1$grid$z,theta=5,phi=33,r=9,axes=F,expand=.3)
 persp_heat(m2$grid$z,theta=5,phi=33,r=9,axes=F,expand=.3)
 persp_heat(m3$grid$z,pal='redblue',theta=5,phi=33,r=9,axes=F,expand=.3)
 # dev.off()
-
-
-
-persp_heat(m1$grid$z,theta=5,phi=33,r=9,axes=F,expand=.3)
-persp_heat(m2$grid$z,theta=5,phi=33,r=9,axes=F,expand=.3)
-persp_heat(m3$grid$z,pal='redblue',theta=5,phi=33,r=9,axes=F,expand=.3)
-# dev.off()
-
-
-
-
 
 ###   end deviation surfaces   ######################################
