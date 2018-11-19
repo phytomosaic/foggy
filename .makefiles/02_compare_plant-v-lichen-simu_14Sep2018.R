@@ -116,6 +116,18 @@ plot(env$env1, resid)
 plot(env$env2, resid)
 
 ### H1: are env deviation surfaces greatest at environmental extremes?
+`fitted.gamfit` <- function(object, ...){
+     ml <- object$mods
+     nc <- length(ml)
+     nr <- length(ml[[1]]$fitted.values)
+     out<- data.frame(matrix(NA, nrow=nr, ncol=nc))
+     cn <- dimnames(object$sumtab)[[1]]
+     for(j in 1:nc){
+          out[[j]] <- ml[[j]]$fitted.values
+     }
+     dimnames(out)[[2]] <- cn
+     out
+}
 y1 <- fitted(g1)
 y2 <- fitted(g2)
 dev <- ecole::standardize(y1) - ecole::standardize(y2) # calc devn
@@ -132,31 +144,60 @@ for(j in 1:NCOL(env)){
 # traits, etc) will show similar responses to environmental gradients
 # in both vascular plants and lichens.
 
-# H2: overlay gradient surfaces per trait
-
-### can also overlay phylo-corrected traits in the same space
+# H2: overlay gradient surfaces per (phylo-corrected) trait
 gt1 <- gamfit(m1, pcwm1)
 gt2 <- gamfit(m2, pcwm2)
-gtd <- gamfit(m1, pcwm1)
-
-
-set_par(NCOL(pcwm1))
-for (i in 1:NCOL(pcwm1)){
-     plot(gt1, i, lcol='#FF000080', lwd=1)
+yt1 <- fitted(gt1)
+yt2 <- fitted(gt2)
+devt <- ecole::standardize(yt1) - ecole::standardize(yt2)
+(gdevt <- gamfit(m1, devt))   # deviation surface
+set_par(NCOL(pcwm1)*3)
+for (j in 1:NCOL(pcwm1)){
+     plot(gt1, j, lcol='#FF000080', lwd=1)
 }
-
+for (j in 1:NCOL(pcwm1)){
+     plot(gt2, j, lcol='#FF000080', lwd=1)
+}
+for (j in 1:NCOL(pcwm1)){
+     plot(gdevt, j, lcol='#FF000080', lwd=1)
+}
 
 
 # H3: Resource delivery form will affect taxonomic diversity of clades
 # differentially.
 # Lichen species diversity increase with fog (altitude), no change rain (latitude)
 # Plant species diversity no change with fog (altitude), increase with rain (latitude)
+s1 <- rowSums((spe1>0)*1, na.rm=T)
+s2 <- rowSums((spe2>0)*1, na.rm=T)
+set_par(NCOL(env))
+for (j in 1:NCOL(env)){
+     plot(env[,j], s1, col='#00000070', pch=16, ylim=range(c(s1,s2)))
+     points(env[,j], s2, col='#FF000070', pch=16)
+}
 
 
 # H4: Resource delivery form will affect phylogenetic diversity and
 # phylogenetic richness of clades differentially.
 # Lichen P increase with fog (altitude), no change rain (latitude)
 # Plant P no change with fog (altitude), increase with rain (latitude)
+pd1 <- cbind(psd(spe1,phy1,F), MPD=mpd(spe1,cophenetic(phy1),F))
+pd2 <- cbind(psd(spe2,phy2,F), MPD=mpd(spe2,cophenetic(phy2),F))
+`plot_pd` <- function(y1, y2, x, pick=1, ...){
+     y1 <- y1[,pick]
+     y2 <- y2[,pick]
+     yrng <- range(c(y1,y2))
+     plot(  x, y1, col='#00000070', pch=16, ylim=yrng,
+            xlab=names(x), ylab=names(y1))
+     abline(lm(y1~x), col='#00000070')
+     points(x, y2, col='#FF000070', pch=16)
+     abline(lm(y2~x), col='#FF000070')
+}
+set_par(12); par(mfcol=c(2,6))
+for (jj in 1:NCOL(pd1)){
+     for (j in 1:NCOL(env)){
+          plot_pd(pd1, pd2, env[,j], pick=jj)
+     }
+}
 
 # Further Hypotheses: verify performance against existing methods:
 
