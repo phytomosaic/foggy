@@ -77,11 +77,7 @@
 #'
 #' @export
 #' @rdname gamfit
-#'
 `gamfit` <- function(ord, env, ...){
-     # if (!inherits(ord, c('metaMDS','procrustes'))){
-     #      stop('`ord` must be of class `metaMDS` or `procrustes`')
-     # }
      if (inherits(ord, 'metaMDS')){
           scr  <- vegan::scores(ord)
           ndim <- ord$ndim
@@ -89,31 +85,23 @@
           scr  <- as.data.frame(ord)
           ndim <- (dim(ord)[[2]])
      }
-     scrnm <- dimnames(scr)[[2]]
      envnm <- dimnames(env)[[2]]
      nenv  <- length(envnm)
      stopifnot(identical(dimnames(scr)[[1]], dimnames(env)[[1]]))
-     xx    <- data.frame(env, scr)
-     # dimnames(xx)[[2]] <- c(envnm, scrnm)
-     xn <- rep(NA, ndim)
      ml <- vector('list', ndim)
      st <- matrix(NA, nrow=nenv, ncol=2)
      dimnames(st)[[1]] <- envnm
      dimnames(st)[[2]] <- c('pval','adj_r2')
-     for(i in 1:ndim){
-          xn[i] <- scrnm[i]
-     }
-     right <- paste0('s(',paste(xn,collapse=','),')')
      for(i in 1:nenv){
-          left    <- paste0(envnm[i], ' ~ ')
-          fmla    <- as.formula(paste(left, right))
-          ml[[i]] <- mgcv::gam(fmla, data=xx, ...)
+          ml[[i]] <- vegan::ordisurf(ord~env[,i], plot=F, ...)
           ss      <- summary(ml[[i]])
           st[i,1] <- as.numeric(sprintf('%.3f',round(ss$s.pv,3)))
           st[i,2] <- as.numeric(sprintf('%.3f',round(ss$r.sq,3)))
      }
      out <- list(mods=ml, sumtab=st)
      class(out) <- 'gamfit'
+     attr(out, 'envnm') <- envnm
+     attr(out, 'scrnm') <- dimnames(ord$points)[[2]]
      out
 }
 #' @export
@@ -135,7 +123,8 @@
      out<- data.frame(matrix(NA, nrow=nr, ncol=nc))
      cn <- dimnames(object$sumtab)[[1]]
      for(j in 1:nc){
-          out[[j]] <- ml[[j]]$fitted.values
+          out[[j]] <- calibrate(ml[[j]])
+          # out[[j]] <- ml[[j]]$fitted.values
      }
      dimnames(out)[[2]] <- cn
      out
@@ -144,15 +133,18 @@
 #' @rdname gamfit
 `plot.gamfit` <- function(x, pick=1, pcol, lcol, pcex, lwd,
                           title=TRUE, ...){
-     x <- x[['mods']][[pick]] # currently best w 2 smooth predictors
-     m <- x$model
+     envnm <- attr(x, 'envnm')[pick]
+     scrnm <- attr(x, 'scrnm')
+     x  <- x[['mods']][[pick]] # currently best w 2 smooth predictors
+     m  <- x$model
      xx <- m[,2:NCOL(m)]
      if(missing(lcol)) lcol <- '#FF000080'
      if(missing(pcol)) pcol <- '#00000080'
      if(missing(pcex)) pcex <-  0.5
      if(missing(lwd))  lwd  <-  1
-     if(title) main <- dimnames(m)[[2]][1] else main <- ''
-     plot(x, se=F, col=lcol, lwd=lwd, main=main, ...)
+     if(title) main <- envnm else main <- ''
+     plot(x, col=lcol, lwd=lwd, main=main, cex=0,
+          xlab=scrnm[1], ylab=scrnm[2], ...)
      points(xx, pch=16, col=pcol, cex=pcex, ...)
 }
 
