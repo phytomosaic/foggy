@@ -18,6 +18,14 @@
 #'
 #' @param title logical, add variable name as title? (default=TRUE)
 #'
+#' @param labcex label size in contours
+#'
+#' @param nlevels,levels Either a vector of levels for which contours
+#'     are drawn, or suggested number of contours in \code{nlevels} if
+#'     \code{levels} are not supplied.
+#'
+#' @param xlab,ylab x- and y-axis labels
+#'
 #' @param nrep number of repetitions for sensitivity analysis
 #'     (default=99)
 #'
@@ -85,6 +93,7 @@
           scr  <- as.data.frame(ord)
           ndim <- (dim(ord)[[2]])
      }
+     # env   <- as.data.frame(env)
      envnm <- dimnames(env)[[2]]
      nenv  <- length(envnm)
      stopifnot(identical(dimnames(scr)[[1]], dimnames(env)[[1]]))
@@ -123,30 +132,59 @@
      out<- data.frame(matrix(NA, nrow=nr, ncol=nc))
      cn <- dimnames(object$sumtab)[[1]]
      for(j in 1:nc){
-          out[[j]] <- calibrate(ml[[j]])
-          # out[[j]] <- ml[[j]]$fitted.values
+          out[[j]] <- predict(ml[[j]], type='response')
      }
      dimnames(out)[[2]] <- cn
      out
 }
 #' @export
 #' @rdname gamfit
-`plot.gamfit` <- function(x, pick=1, pcol, lcol, pcex, lwd,
-                          title=TRUE, ...){
+`plot.gamfit` <- function(x, pick=1, pcol, lcol, pcex, lwd, labcex,
+                          title=TRUE, nlevels=10, levels, xlab, ylab,
+                          ...){
      envnm <- attr(x, 'envnm')[pick]
      scrnm <- attr(x, 'scrnm')
      x  <- x[['mods']][[pick]] # currently best w 2 smooth predictors
-     m  <- x$model
-     xx <- m[,2:NCOL(m)]
+     # m  <- x$model
+     # xx <- m[,2:NCOL(m)]
      if(missing(lcol)) lcol <- '#FF000080'
      if(missing(pcol)) pcol <- '#00000080'
      if(missing(pcex)) pcex <-  0.5
+     if(missing(labcex)) labcex <-  0.6
      if(missing(lwd))  lwd  <-  1
      if(title) main <- envnm else main <- ''
-     plot(x, col=lcol, lwd=lwd, main=main, cex=0,
-          xlab=scrnm[1], ylab=scrnm[2], ...)
-     points(xx, pch=16, col=pcol, cex=pcex, ...)
+     if(missing(nlevels))  nlevels  <-  10
+     if (missing(levels))
+          levels <- pretty(range(x$grid$z, finite = TRUE), nlevels)
+     if(missing(xlab))  xlab  <-  scrnm[1]
+     if(missing(ylab))  ylab  <-  scrnm[2]
+     y  <- x$model$y
+     x1 <- x$model$x1
+     x2 <- x$model$x2
+     X  <- x$grid$x
+     Y  <- x$grid$y
+     Z  <- x$grid$z
+     plot(x1, x2, pch=16, col = pcol, cex = pcex, asp = 1,
+          main = main, xlab = xlab, ylab = ylab, ...)
+     contour(X, Y, Z, col = lcol, add = TRUE, levels = levels,
+             labcex = labcex, drawlabels = TRUE, lwd = lwd)
 }
+# `plot.gamfit` <- function(x, pick=1, pcol, lcol, pcex, lwd,
+#                           title=TRUE, ...){
+#      envnm <- attr(x, 'envnm')[pick]
+#      scrnm <- attr(x, 'scrnm')
+#      x  <- x[['mods']][[pick]] # currently best w 2 smooth preds
+#      m  <- x$model
+#      xx <- m[,2:NCOL(m)]
+#      if(missing(lcol)) lcol <- '#FF000080'
+#      if(missing(pcol)) pcol <- '#00000080'
+#      if(missing(pcex)) pcex <-  0.5
+#      if(missing(lwd))  lwd  <-  1
+#      if(title) main <- envnm else main <- ''
+#      plot(x, col=lcol, lwd=lwd, main=main, cex=0,
+#           xlab=scrnm[1], ylab=scrnm[2], ...)
+#      points(xx, pch=16, col=pcol, cex=pcex, ...)
+# }
 
 ###   sensitivity functions   #####
 #' @export
@@ -186,14 +224,14 @@
           if(pltype==1){
                plot_joy(r[,,2], ypad=1.01, xlab=xlab)
           } else {
-               plot_heatmap(r[,,2], xord=F)
+               plot_heatmap(r[,,2])
           }
      }
      if (stat==2){
           if(pltype==1){
                plot_joy(r[,,1], ypad=1.01, xlab=xlab)
           } else {
-               plot_heatmap(r[,,1]<0.05, xord=F)
+               plot_heatmap(r[,,1]<0.05)
           }
      }
 }

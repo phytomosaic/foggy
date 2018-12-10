@@ -4,6 +4,7 @@
 \alias{gamfit}
 \alias{print.gamfit}
 \alias{summary.gamfit}
+\alias{fitted.gamfit}
 \alias{plot.gamfit}
 \alias{gamfit_sens}
 \alias{plot.gamfit_sens}
@@ -16,8 +17,10 @@ gamfit(ord, env, ...)
 
 \method{summary}{gamfit}(object, ...)
 
-\method{plot}{gamfit}(x, pick = 1, pcol, lcol, pcex, lwd, title = TRUE,
-  ...)
+\method{fitted}{gamfit}(object, ...)
+
+\method{plot}{gamfit}(x, pick = 1, pcol, lcol, pcex, lwd, labcex,
+  title = TRUE, nlevels = 10, levels, xlab, ylab, ...)
 
 gamfit_sens(x, env, nrep = 99, perc = 5, ...)
 
