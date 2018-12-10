@@ -110,16 +110,17 @@ for (i in 1:NCOL(env)){ plot(g2, i, lcol='#FF000080', lwd=1) }
 # Convergence is measured as 1) Procrustes residuals or 2) overlap of
 # env surfaces in trait syndrome space.
 
-### H1: are Procrustes residuals higher at environmental extremes?
+### H1: Procrustes disagreement (residuals) higher at env extremes?
 resid <- residuals(p)
 set_par(2)
-plot(env$env1, resid)
-plot(env$env2, resid)
+plot(env$env1, resid, pch=16) ; abline(lm(resid ~ env$env1))
+plot(env$env2, resid, pch=16) ; abline(lm(resid ~ env$env2))
+# greater disagreement of plant vs lichen at extremes of env2 (but not env1)
 
-### H1: are env deviation surfaces greatest at environmental extremes?
+### H1: enviro deviation surfaces greatest at enviro extremes?
 y1 <- fitted(g1)
 y2 <- fitted(g2)
-dev <- ecole::standardize(y1) - ecole::standardize(y2) # calc devn
+dev <- decostand(y1, 'range') - decostand(y2, 'range')
 (gdev <- gamfit(m1, dev))   # deviation surface
 set_par(6)
 for(j in 1:NCOL(env)){
@@ -127,7 +128,6 @@ for(j in 1:NCOL(env)){
      plot(g2,   j, lcol='#FF000080', lwd=1)
      plot(gdev, j, lcol='#FF000080', lwd=1)
 }
-
 
 # H2: Suites of traits (e.g. water retention traits, photoprotection
 # traits, etc) will show similar responses to environmental gradients
@@ -138,7 +138,7 @@ gt1 <- gamfit(m1, pcwm1)
 gt2 <- gamfit(m2, pcwm2)
 yt1 <- fitted(gt1)
 yt2 <- fitted(gt2)
-devt <- ecole::standardize(yt1) - ecole::standardize(yt2)
+devt <- decostand(yt1, 'range') - decostand(yt2, 'range')
 (gdevt <- gamfit(m1, devt))   # deviation surface
 set_par(NCOL(pcwm1)*3)
 for (j in 1:NCOL(pcwm1)){
@@ -161,7 +161,9 @@ s2 <- rowSums((spe2>0)*1, na.rm=T)
 set_par(NCOL(env))
 for (j in 1:NCOL(env)){
      plot(env[,j], s1, col='#00000070', pch=16, ylim=range(c(s1,s2)))
+     abline(lm(s1~env[,j]), col='#00000070')
      points(env[,j], s2, col='#FF000070', pch=16)
+     abline(lm(s2~env[,j]), col='#FF000070')
 }
 
 
@@ -169,46 +171,70 @@ for (j in 1:NCOL(env)){
 # phylogenetic richness of clades differentially.
 # Lichen P increase with fog (altitude), no change rain (latitude)
 # Plant P no change with fog (altitude), increase with rain (latitude)
-pd1 <- cbind(psd(spe1,phy1,F), MPD=mpd(spe1,cophenetic(phy1),F))
-pd2 <- cbind(psd(spe2,phy2,F), MPD=mpd(spe2,cophenetic(phy2),F))
+pd1 <- cbind(psd(spe1,phy1,F)) ; pairs(pd1, upper.panel=NULL)
+pd2 <- cbind(psd(spe2,phy2,F)) ; pairs(pd2, upper.panel=NULL)
 `plot_pd` <- function(y1, y2, x, pick=1, ...){
-     y1 <- y1[,pick]
-     y2 <- y2[,pick]
+     y1   <- y1[,pick]
+     y2   <- y2[,pick]
      yrng <- range(c(y1,y2))
-     plot(  x, y1, col='#00000070', pch=16, ylim=yrng,
-            xlab=names(x), ylab=names(y1))
+     plot(x, y1, col='#00000070', pch=16, ylim=yrng, ...)
      abline(lm(y1~x), col='#00000070')
      points(x, y2, col='#FF000070', pch=16)
      abline(lm(y2~x), col='#FF000070')
 }
-set_par(12); par(mfcol=c(2,6))
+set_par(10); par(mfcol=c(2,5))
 for (jj in 1:NCOL(pd1)){
      for (j in 1:NCOL(env)){
-          plot_pd(pd1, pd2, env[,j], pick=jj)
+          plot_pd(pd1, pd2, env[,j], pick=jj,
+                  xlab=dimnames(env)[[2]][j],
+                  ylab=dimnames(pd1)[[2]][jj])
      }
 }
 
-# Further Hypotheses: verify performance against existing methods:
 
-# ### fourthcorner
-# (f1 <- fourthcorner(env, spe1, tra1, nrepet=999, modeltype=6))
-# (f2 <- fourthcorner(env, spe2, tra2, nrepet=999, modeltype=6))
-#
-# ## RLQ and fourthcorner.rlq
-# r1 <- rlqfn(spe1, env, tra1)
-# r2 <- rlqfn(spe2, env, tra2)
-# fc_envfit(r1)
-# fc_envfit(r2)
+### TODO:
+###   further Hypotheses: verify performance against existing methods
 
+### RLQ and fourthcorner.rlq
+`rlqfn` <- function(...){
+     `f` <- function(spe, env, tra, ndim=2, ...){
+          ca     <-       dudi.coa(spe, scannf=F, nf=ndim)
+          pc_env <- dudi.hillsmith(env, scannf=F, nf=ndim, row.w=ca$lw)
+          pc_tra <- dudi.hillsmith(tra, scannf=F, nf=ndim, row.w=ca$cw)
+          rlqres <- rlq(pc_env, ca, pc_tra, scannf=F, nf=ndim)
+          out <- list(rlqres=rlqres, ca=ca, pc_env=pc_env, pc_tra=pc_tra)
+          class(out) <- 'rlqres'
+          out
+     }
+     f(...)
+}
+`fc_envfit` <- function(...){
+     `f` <- function(x, ...){
+          if(!class(x)[1] == 'rlqres') stop('must be class `rlqres`')
+          environment(fourthcorner.rlq) <- environment()
+          rlqres <- x[['rlqres']]
+          ca     <- x[['ca']]
+          pc_env <- x[['pc_env']]
+          pc_tra <- x[['pc_tra']]
+          eval(fc <- fourthcorner.rlq(rlqres,type='R.axes'),
+               parent.frame())
+          nm   <- fc$colnames.R
+          nenv <- length(nm)
+          tt   <- cbind(r_obsvd  = fc$tabD2$obs,
+                        adj_pval = fc$tabD2$adj.pvalue)
+          out  <- cbind(tt[1:nenv,], tt[(nenv+1):(nenv*2),])
+          dimnames(out)[[1]] <- nm
+          out
+     }
+     f(...)
+}
+### fourthcorner
+(f1 <- fourthcorner(env, spe1, tra1, nrepet=999, modeltype=6))
+(f2 <- fourthcorner(env, spe2, tra2, nrepet=999, modeltype=6))
+## RLQ and fourthcorner.rlq
+r1 <- rlqfn(spe1, env, tra1)
+r2 <- rlqfn(spe2, env, tra2)
+fc_envfit(r1)
+fc_envfit(r2)
 
-
-
-
-
-
-
-
-
-
-
-
+####   END   ######################################################
