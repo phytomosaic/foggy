@@ -61,6 +61,8 @@ sapply(tra2, FUN=function(j){
 ### phylogenetic correction of traits (optional, given phylo signal)
 ptra1 <- phylo_corr(phy1, tra1)
 ptra2 <- phylo_corr(phy2, tra2)
+ptra1 <- decostand(ptra1, 'range')
+ptra2 <- decostand(ptra2, 'range')
 
 ### see effects of phylogenetic correction
 set_par(NCOL(tra1))
@@ -102,7 +104,6 @@ set_par(NCOL(env)*2)
 for (i in 1:NCOL(env)){ plot(g1, i, lcol='#FF000080', lwd=1) }
 for (i in 1:NCOL(env)){ plot(g2, i, lcol='#FF000080', lwd=1) }
 
-
 # H1: Trait convergence of non-analogous communities will be greater
 # at the extremes of the environmental stress gradients (because
 # extremes more strongly select for similar trait syndromes???).
@@ -116,18 +117,6 @@ plot(env$env1, resid)
 plot(env$env2, resid)
 
 ### H1: are env deviation surfaces greatest at environmental extremes?
-`fitted.gamfit` <- function(object, ...){
-     ml <- object$mods
-     nc <- length(ml)
-     nr <- length(ml[[1]]$fitted.values)
-     out<- data.frame(matrix(NA, nrow=nr, ncol=nc))
-     cn <- dimnames(object$sumtab)[[1]]
-     for(j in 1:nc){
-          out[[j]] <- ml[[j]]$fitted.values
-     }
-     dimnames(out)[[2]] <- cn
-     out
-}
 y1 <- fitted(g1)
 y2 <- fitted(g2)
 dev <- ecole::standardize(y1) - ecole::standardize(y2) # calc devn
