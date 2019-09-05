@@ -118,8 +118,8 @@ plot(env$env2, resid, pch=16) ; abline(lm(resid ~ env$env2))
 # greater disagreement of plant vs lichen at extremes of env2 (but not env1)
 
 ### H1: enviro deviation surfaces greatest at enviro extremes?
-y1 <- fitted(g1)
-y2 <- fitted(g2)
+y1  <- fitted(g1)
+y2  <- fitted(g2)
 dev <- decostand(y1, 'range') - decostand(y2, 'range')
 (gdev <- gamfit(m1, dev))   # deviation surface
 set_par(6)
@@ -133,23 +133,29 @@ for(j in 1:NCOL(env)){
 # traits, etc) will show similar responses to environmental gradients
 # in both vascular plants and lichens.
 
-# H2: overlay gradient surfaces per (phylo-corrected) trait
-gt1 <- gamfit(m1, pcwm1)
-gt2 <- gamfit(m2, pcwm2)
-yt1 <- fitted(gt1)
-yt2 <- fitted(gt2)
-devt <- decostand(yt1, 'range') - decostand(yt2, 'range')
-(gdevt <- gamfit(m1, devt))   # deviation surface
-set_par(NCOL(pcwm1)*3)
-for (j in 1:NCOL(pcwm1)){
-     plot(gt1, j, lcol='#FF000080', lwd=1)
-}
-for (j in 1:NCOL(pcwm1)){
-     plot(gt2, j, lcol='#FF000080', lwd=1)
-}
-for (j in 1:NCOL(pcwm1)){
-     plot(gdevt, j, lcol='#FF000080', lwd=1)
-}
+
+# H2: compare R2 of each gamfit model
+g1
+g2
+
+# # H2: overlay gradient surfaces per (phylo-corrected) trait
+# ### NO! is circular to use traits twice!
+# gt1 <- gamfit(m1, pcwm1)
+# gt2 <- gamfit(m2, pcwm2)
+# yt1 <- fitted(gt1)
+# yt2 <- fitted(gt2)
+# devt <- decostand(yt1, 'range') - decostand(yt2, 'range')
+# (gdevt <- gamfit(m1, devt))   # deviation surface
+# set_par(NCOL(pcwm1)*3)
+# for (j in 1:NCOL(pcwm1)){
+#      plot(gt1, j, lcol='#FF000080', lwd=1)
+# }
+# for (j in 1:NCOL(pcwm1)){
+#      plot(gt2, j, lcol='#FF000080', lwd=1)
+# }
+# for (j in 1:NCOL(pcwm1)){
+#      plot(gdevt, j, lcol='#FF000080', lwd=1)
+# }
 
 
 # H3: Resource delivery form will affect taxonomic diversity of clades
