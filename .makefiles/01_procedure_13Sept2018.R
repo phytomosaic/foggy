@@ -4,9 +4,7 @@
 #  Rob Smith, smithr2@oregonstate.edu, Oregon State Univ, 13 Sep 2018
 ## CC-BY-SA 4.0 License (Creative Commons Attribution-ShareAlike 4.0)
 
-# GITHUB_PAT <- '01591b7a42837969a5e9360bb61089d5dc1822a0'
-# devtools::install_github('phytomosaic/foggy', auth_token=GITHUB_PAT)
-
+devtools::install_github('phytomosaic/foggy')
 require(foggy)
 
 ### data load
